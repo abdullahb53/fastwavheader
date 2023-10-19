@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"os"
+
+	fwh "github.com/abdullahb5355/fastwavheader/fwh"
 )
 
 func main() {
@@ -13,7 +15,7 @@ func main() {
 	}
 
 	// Create instance.
-	fwh := NewFastWavHeader()
+	fwh := fwh.NewFastWavHeader()
 
 	// Send data through FastWavHeader and get wav header info.
 	myWavInfo := fwh.GetHeader(file)

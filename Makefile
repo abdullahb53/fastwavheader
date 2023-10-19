@@ -1,2 +1,3 @@
+.PHONY: test
 test:
-	go test -bench=. -benchmem
+	go test -bench=. -benchmem ./...
