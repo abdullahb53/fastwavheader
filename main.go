@@ -13,7 +13,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("File read err:%+x", err)
 	}
-
 	// Create instance.
 	fwh := fwh.NewFastWavHeader()
 
