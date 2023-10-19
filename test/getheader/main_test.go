@@ -5,7 +5,7 @@ import (
 	"testing"
 	"unsafe"
 
-	fwh "github.com/abdullahb5355/fastwavheader/fwh"
+	fwh "github.com/abdullahb53/fastwavheader/fwh"
 )
 
 func FastWavHeaderSlice(file []byte) fwh.WavInfo {

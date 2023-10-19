@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	fwh "github.com/abdullahb5355/fastwavheader/fwh"
+	fwh "github.com/abdullahb53/fastwavheader/fwh"
 )
 
 func main() {
