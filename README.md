@@ -1,8 +1,12 @@
 # FastWavHeader
  __Optimized way to get wav header.__<br/>
 
-![fastwavheaderAlloc](https://github.com/abdullahb53/fastwavheader/assets/29378922/bf1af40d-ca93-4237-b1da-a7bc372d7612)
+![fastwavheaderAlloc](https://github.com/abdullahb53/fastwavheader/assets/29378922/8e63ad06-eea0-4daf-a9ca-02bd4254670f)
 
-```ruby
-Fancy is selected.
+
+**`Slice/Unsafe is selected`**
+
+ &nbsp;<sub>Show becnhmark results:<sub>
+```
+make test
 ```
