@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"os"
-	"time"
 
 	fwh "github.com/abdullahb53/fastwavheader/fwh"
 )
@@ -75,6 +74,6 @@ func main() {
 		fwh.FilePathCh <- val
 	}
 
-	time.Sleep(10 * time.Second)
+	<-make(chan struct{})
 
 }
