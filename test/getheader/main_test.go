@@ -8,8 +8,8 @@ import (
 	fwh "github.com/abdullahb53/fastwavheader/fwh"
 )
 
-func FastWavHeaderSlice(file []byte) fwh.WavInfo {
-	return fwh.WavInfo{
+func FastWavHeaderSlice(file []byte) fwh.Header {
+	return fwh.Header{
 		RiffFileDescriptionHeader: string(file[0:4]),
 		SizeOfFile:                uint32(file[4]) | uint32(file[5])<<8 | uint32(file[6])<<16 | uint32(file[7])<<24,
 		WavDescriptonHeader:       string(file[8:12]),
@@ -26,11 +26,11 @@ func FastWavHeaderSlice(file []byte) fwh.WavInfo {
 	}
 }
 
-func FastWavHeaderSliceUnsafe(file []byte) fwh.WavInfo {
+func FastWavHeaderSliceUnsafe(file []byte) fwh.Header {
 	RiffFileDescriptionHeader := file[0:4]
 	WawDescriptionHeader := file[8:12]
 	FmtDescriptionHeader := file[12:16]
-	return fwh.WavInfo{
+	return fwh.Header{
 		RiffFileDescriptionHeader: unsafe.String(unsafe.SliceData(RiffFileDescriptionHeader), len(RiffFileDescriptionHeader)),
 		SizeOfFile:                uint32(file[4]) | uint32(file[5])<<8 | uint32(file[6])<<16 | uint32(file[7])<<24,
 		WavDescriptonHeader:       unsafe.String(unsafe.SliceData(WawDescriptionHeader), len(WawDescriptionHeader)),
@@ -47,11 +47,11 @@ func FastWavHeaderSliceUnsafe(file []byte) fwh.WavInfo {
 	}
 }
 
-func FastWavHeaderSliceReflect(file []byte) fwh.WavInfo {
+func FastWavHeaderSliceReflect(file []byte) fwh.Header {
 	RiffFileDescriptionHeader := file[0:4]
 	WawDescriptionHeader := file[8:12]
 	FmtDescriptionHeader := file[12:16]
-	return fwh.WavInfo{
+	return fwh.Header{
 		RiffFileDescriptionHeader: *(*string)(unsafe.Pointer(&RiffFileDescriptionHeader)),
 		SizeOfFile:                uint32(file[4]) | uint32(file[5])<<8 | uint32(file[6])<<16 | uint32(file[7])<<24,
 		WavDescriptonHeader:       *(*string)(unsafe.Pointer(&WawDescriptionHeader)),
@@ -68,8 +68,8 @@ func FastWavHeaderSliceReflect(file []byte) fwh.WavInfo {
 	}
 }
 
-func FastWavHeaderSliceFancy(file []byte) fwh.WavInfo {
-	res := fwh.WavInfo{
+func FastWavHeaderSliceFancy(file []byte) fwh.Header {
+	res := fwh.Header{
 		RiffFileDescriptionHeader: "",
 		SizeOfFile:                uint32(file[4]) | uint32(file[5])<<8 | uint32(file[6])<<16 | uint32(file[7])<<24,
 		WavDescriptonHeader:       "",
@@ -98,7 +98,7 @@ func FastWavHeaderSliceFancy(file []byte) fwh.WavInfo {
 	return res
 }
 
-func FastWavHeaderArrayUnsafe(file []byte) fwh.WavInfo {
+func FastWavHeaderArrayUnsafe(file []byte) fwh.Header {
 	var (
 		head [44]byte
 	)
@@ -109,7 +109,7 @@ func FastWavHeaderArrayUnsafe(file []byte) fwh.WavInfo {
 	RiffFileDescriptionHeader := head[0:4]
 	WawDescriptionHeader := head[8:12]
 	FmtDescriptionHeader := head[12:16]
-	return fwh.WavInfo{
+	return fwh.Header{
 		RiffFileDescriptionHeader: unsafe.String(unsafe.SliceData(RiffFileDescriptionHeader), len(RiffFileDescriptionHeader)),
 		SizeOfFile:                uint32(head[4]) | uint32(head[5])<<8 | uint32(head[6])<<16 | uint32(head[7])<<24,
 		WavDescriptonHeader:       unsafe.String(unsafe.SliceData(WawDescriptionHeader), len(WawDescriptionHeader)),
@@ -126,7 +126,7 @@ func FastWavHeaderArrayUnsafe(file []byte) fwh.WavInfo {
 	}
 }
 
-func FastWavHeaderArrayReflect(file []byte) fwh.WavInfo {
+func FastWavHeaderArrayReflect(file []byte) fwh.Header {
 	var (
 		head [44]byte
 	)
@@ -136,7 +136,7 @@ func FastWavHeaderArrayReflect(file []byte) fwh.WavInfo {
 	RiffFileDescriptionHeader := head[0:4]
 	WawDescriptionHeader := head[8:12]
 	FmtDescriptionHeader := head[12:16]
-	return fwh.WavInfo{
+	return fwh.Header{
 		RiffFileDescriptionHeader: *(*string)(unsafe.Pointer(&RiffFileDescriptionHeader)),
 		SizeOfFile:                uint32(head[4]) | uint32(head[5])<<8 | uint32(head[6])<<16 | uint32(head[7])<<24,
 		WavDescriptonHeader:       *(*string)(unsafe.Pointer(&WawDescriptionHeader)),
@@ -153,12 +153,12 @@ func FastWavHeaderArrayReflect(file []byte) fwh.WavInfo {
 	}
 }
 
-func FastWavHeaderArrayFancy(file []byte) fwh.WavInfo {
+func FastWavHeaderArrayFancy(file []byte) fwh.Header {
 	var head [44]byte
 	for i := 0; i < 44; i++ {
 		head[i] = file[i]
 	}
-	res := fwh.WavInfo{
+	res := fwh.Header{
 		RiffFileDescriptionHeader: "",
 		SizeOfFile:                uint32(head[4]) | uint32(head[5])<<8 | uint32(head[6])<<16 | uint32(head[7])<<24,
 		WavDescriptonHeader:       "",

@@ -1,8 +1,18 @@
 package fwh
 
-import "unsafe"
+import (
+	"log"
+	"os"
+	"unsafe"
+)
 
 type WavInfo struct {
+	FilePath string
+	Header   Header
+	err      string
+}
+
+type Header struct {
 	RiffFileDescriptionHeader string
 	SizeOfFile                uint32
 	WavDescriptonHeader       string
@@ -18,17 +28,27 @@ type WavInfo struct {
 	SizeOfDataChunk           uint32
 }
 
-type FastWavHeader struct{}
-
-func NewFastWavHeader() *FastWavHeader {
-	return &FastWavHeader{}
+type FastWavHeader struct {
+	FilePathCh      chan string
+	HeaderCh        chan WavInfo
+	pauseSender     chan struct{}
+	startSender     chan struct{}
+	isChannelActive bool
 }
 
-func (fwh *FastWavHeader) GetHeader(file []byte) WavInfo {
+func NewFastWavInstance() *FastWavHeader {
+	return &FastWavHeader{
+		pauseSender:     make(chan struct{}),
+		startSender:     make(chan struct{}),
+		isChannelActive: false,
+	}
+}
+
+func (fwh *FastWavHeader) GetHeader(file []byte) Header {
 	RiffFileDescriptionHeader := file[0:4]
 	WawDescriptionHeader := file[8:12]
 	FmtDescriptionHeader := file[12:16]
-	return WavInfo{
+	return Header{
 		RiffFileDescriptionHeader: unsafe.String(unsafe.SliceData(RiffFileDescriptionHeader), len(RiffFileDescriptionHeader)),
 		SizeOfFile:                uint32(file[4]) | uint32(file[5])<<8 | uint32(file[6])<<16 | uint32(file[7])<<24,
 		WavDescriptonHeader:       unsafe.String(unsafe.SliceData(WawDescriptionHeader), len(WawDescriptionHeader)),
@@ -45,6 +65,91 @@ func (fwh *FastWavHeader) GetHeader(file []byte) WavInfo {
 	}
 }
 
-func (fwh *FastWavHeader) GetOnlyData(file []byte) []byte {
-	return file[44:]
+// StartStreamEvent has two channels.
+// 'chan string' is for sendnig file-paths to channel. 'chan WavInfo' is for getting calculated WavHeaders from channel.
+func (fwh *FastWavHeader) StartStreamEvent() {
+
+	fwh.FilePathCh = make(chan string, 100)
+	fwh.HeaderCh = make(chan WavInfo, 100)
+
+	go func() {
+		var (
+			filePath      string
+			file          *os.File
+			err           error
+			bufferCounter int
+		)
+		WavInfo := WavInfo{}
+		for {
+			select {
+			case filePath = <-fwh.FilePathCh:
+				WavInfo.FilePath = filePath
+				file, err = os.Open(filePath)
+				if err != nil {
+					// log.Printf("Open file error: %+v", err)
+					WavInfo.err = err.Error()
+					WavInfo.Header = Header{}
+					fwh.HeaderCh <- WavInfo
+					file.Close()
+					continue
+				}
+				bufferCounter = 0
+				data := make([]byte, 44)
+				for {
+					n, err := file.Read(data)
+					if n == 0 || err != nil {
+						break
+					}
+					bufferCounter += n
+					if bufferCounter >= 44 {
+						WavInfo.Header = fwh.GetHeader(data)
+						WavInfo.err = ""
+						fwh.HeaderCh <- WavInfo
+						file.Close()
+						break
+					}
+				}
+
+			case <-fwh.pauseSender:
+				<-fwh.startSender
+			}
+		}
+	}()
+}
+
+// Change stream channels'(producer filepaths, consumer wavheaderinfo) queue size.
+func (fwh *FastWavHeader) ChangeQueueSize(FilePathProducerSize int, WavInfoConsumerSize int) {
+	oldProducer := fwh.FilePathCh
+	oldProducerPause := fwh.pauseSender
+	oldProducerStarter := fwh.startSender
+	oldConsumer := fwh.HeaderCh
+
+	CapOfProducer := cap(oldProducer)
+	CapOfConsumer := cap(oldConsumer)
+
+	oldProducerPause <- struct{}{}
+	log.Println("[FaswWavHeader] Stream is gracefully shutdown.")
+
+	fwh.HeaderCh = make(chan WavInfo, WavInfoConsumerSize)
+	log.Printf("[FaswWavHeader] Consumer WavInfo queue size %v is changed to %v\n", CapOfConsumer, cap(fwh.HeaderCh))
+
+	fwh.FilePathCh = make(chan string, FilePathProducerSize)
+	log.Printf("[FaswWavHeader] Producer file path queue size %v is changed to %v\n", CapOfProducer, cap(fwh.FilePathCh))
+
+	close(oldProducer)
+	close(oldConsumer)
+	oldProducerStarter <- struct{}{}
+	log.Println("[FaswWavHeader] Stream is started..")
+
+	temp := []string{}
+	for val := range oldProducer {
+		log.Println("[FastWavHeader] Secured >>", val)
+		temp = append(temp, val)
+	}
+
+	// Send temp files to new channel.
+	for _, val := range temp {
+		fwh.FilePathCh <- val
+	}
+	log.Println("[FastWavHeader] ### Retrieving is completed ###")
 }
